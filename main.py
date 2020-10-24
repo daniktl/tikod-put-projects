@@ -19,5 +19,16 @@ def examples():
     hist_data.draw_plots()
 
 
+def zad1():
+    with open("data/norm_romeo.txt", "r") as file:
+        data = file.read()
+    generator = histfile.Generator(data)
+    # res = generator.null_approximation()
+    # res = generator.get_frequency()
+    # res = generator.get_probability("e")
+    res = generator.get_probability_pairs("e")
+    print(res)
+
+
 if __name__ == '__main__':
-    examples()
+    zad1()

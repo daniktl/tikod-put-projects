@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot
+from string import ascii_lowercase, digits
+import random
 
 files_ls = []
 
@@ -86,6 +88,47 @@ class CustomHistData:
             return np.amax(self.array, axis=0)
         else:
             return np.amax(self.array, axis=1)
+
+
+class Generator:
+
+    def __init__(self, data: str):
+        self.data: str = data
+        self.data_set: str = ascii_lowercase + digits + " "
+        self.frequencies = self.get_frequency()
+
+    def null_approximation(self):
+        return "".join(random.choice(self.data_set) for _ in range(len(self.data)))
+
+    def markov_model(self, order: int = 1) -> str:
+        print(self.data)
+        return ""
+
+    def get_probability(self, char):
+        """
+
+        :param char:  character probability of which you want to receive
+        :return: probability for this character in decimal point format
+        """
+        count = self.data.count(char)
+        return count/len(self.data)
+
+    def get_frequency(self):
+        result = {}
+        for char in self.data_set:
+            result[char] = self.data.count(char)
+        pyplot.bar(list(result.keys()), list(result.values()))
+        pyplot.show()
+        return result
+
+    def get_probability_pairs(self, first_char):
+        result = {}
+        for char in self.data_set:
+            result[first_char + char] = self.data.count(first_char + char)
+        pyplot.bar(list(result.keys()), list(result.values()))
+        pyplot.show()
+        return result
+
 
 
 # functions
