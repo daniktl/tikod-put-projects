@@ -26,8 +26,8 @@ def zad1():
     # res = generator.null_approximation()
     # res = generator.get_frequency()
     # res = generator.get_probability("e")
-    res = generator.get_probability_pairs("e")
-    print(res)
+    # res = generator.basic_approximation()
+    res = generator.markov_model(level=5, length=1000, start_sub="probability")
 
 
 if __name__ == '__main__':

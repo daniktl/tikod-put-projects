@@ -95,40 +95,53 @@ class Generator:
     def __init__(self, data: str):
         self.data: str = data
         self.data_set: str = ascii_lowercase + digits + " "
+        self.size = len(self.data)
         self.frequencies = self.get_frequency()
 
     def null_approximation(self):
         return "".join(random.choice(self.data_set) for _ in range(len(self.data)))
 
-    def markov_model(self, order: int = 1) -> str:
-        print(self.data)
-        return ""
+    def basic_approximation(self, length=100):
+        return "".join([np.random.choice(list(self.data_set), p=[self.get_probability(x) for x in self.data_set]) for _ in range(length)])
 
-    def get_probability(self, char):
+    def markov_model(self, level: int = 1, length: int = 100, start_sub: str = "") -> str:
+        result = start_sub
+        while len(result) < length:
+            result += np.random.choice(list(self.data_set), replace=True, p=self.get_probability_pairs(result[-level:]))
+        return result
+
+    def get_substrings_len(self, start_sub):
+        count = 0
+        for char in self.data_set:
+            count += self.data.count(start_sub + char)
+        return count
+
+    def get_probability(self, substring):
         """
 
-        :param char:  character probability of which you want to receive
+        :param substring: substring probability of which you want to receive
         :return: probability for this character in decimal point format
         """
-        count = self.data.count(char)
+        count = self.data.count(substring)
         return count/len(self.data)
 
     def get_frequency(self):
         result = {}
         for char in self.data_set:
             result[char] = self.data.count(char)
-        pyplot.bar(list(result.keys()), list(result.values()))
-        pyplot.show()
         return result
 
-    def get_probability_pairs(self, first_char):
-        result = {}
-        for char in self.data_set:
-            result[first_char + char] = self.data.count(first_char + char)
-        pyplot.bar(list(result.keys()), list(result.values()))
-        pyplot.show()
+    def get_probability_pairs(self, start_subs):
+        result = []
+        subs_len = self.get_substrings_len(start_subs)
+        if subs_len:
+            for char in self.data_set:
+                result.append(self.data.count(start_subs + char)/subs_len)
+        else:
+            result = [self.get_probability(x) for x in self.data_set]
+        result = np.array(result)
+        result /= result.sum()
         return result
-
 
 
 # functions
