@@ -92,28 +92,59 @@ class CustomHistData:
 
 class Generator:
 
-    def __init__(self, data: str):
+    def __init__(self, data: str, sample_delta: int = 5000):
+        """
+        :param data: text to generate data on
+        :param sample_delta: the width of the window to sample data
+        """
         self.data: str = data
         self.data_set: str = ascii_lowercase + digits + " "
         self.size = len(self.data)
+        start = random.randint(0, self.size - sample_delta)
+        # generate sample from the text to use in the class methods to reduce processing time for huge datasets
+        self.sample = self.data[start:start+sample_delta]
         self.frequencies = self.get_frequency()
 
-    def null_approximation(self):
-        return "".join(random.choice(self.data_set) for _ in range(len(self.data)))
+    def null_approximation(self, length=100) -> str:
+        """
+        Generate null approximation (just randomize the data set)
+        :param length: int - length of text to generate
+        :return: generated text
+        """
+        return "".join(random.choice(self.data_set) for _ in range(length))
 
-    def basic_approximation(self, length=100):
-        return "".join([np.random.choice(list(self.data_set), p=[self.get_probability(x) for x in self.data_set]) for _ in range(length)])
+    def basic_approximation(self, length: int = 100) -> str:
+        """
+        Generate basic approximation, based on the frequency of occurrence char in the text
+        :param length: int - length of text to generate
+        :return: generated text
+        """
+        return "".join([np.random.choice(list(self.data_set),
+                                         p=[self.get_probability(x) for x in self.data_set]) for _ in range(length)])
 
     def markov_model(self, level: int = 1, length: int = 100, start_sub: str = "") -> str:
+        """
+        Generate markov chain
+        :param level: int - how many previous chains we need to examine
+        :param length: int - length of text to generate
+        :param start_sub: str - substring we need to start with
+        :return: generated text
+        """
         result = start_sub
         while len(result) < length:
-            result += np.random.choice(list(self.data_set), replace=True, p=self.get_probability_pairs(result[-level:]))
+            result += np.random.choice(list(self.data_set), replace=True,
+                                       p=self.get_probability_pairs(result[-level:]))
         return result
 
-    def get_substrings_len(self, start_sub):
+    def get_substrings_len(self, start_sub) -> int:
+        """
+        Count len of all substrings, starting with provided substring
+        :param start_sub:
+        :return: int - amount of substrings
+        """
         count = 0
         for char in self.data_set:
-            count += self.data.count(start_sub + char)
+            count += self.sample.count(start_sub + char)
         return count
 
     def get_probability(self, substring):
@@ -122,8 +153,8 @@ class Generator:
         :param substring: substring probability of which you want to receive
         :return: probability for this character in decimal point format
         """
-        count = self.data.count(substring)
-        return count/len(self.data)
+        count = self.sample.count(substring)
+        return count/len(self.sample)
 
     def get_frequency(self):
         result = {}
@@ -131,12 +162,17 @@ class Generator:
             result[char] = self.data.count(char)
         return result
 
-    def get_probability_pairs(self, start_subs):
+    def get_probability_pairs(self, start_subs) -> np.array:
+        """
+        Get probability of occurrence of this substring with any character of available.
+        :param start_subs:
+        :return: numpy array of
+        """
         result = []
         subs_len = self.get_substrings_len(start_subs)
         if subs_len:
             for char in self.data_set:
-                result.append(self.data.count(start_subs + char)/subs_len)
+                result.append(self.sample.count(start_subs + char)/subs_len)
         else:
             result = [self.get_probability(x) for x in self.data_set]
         result = np.array(result)
