@@ -119,8 +119,10 @@ class Generator:
         :param length: int - length of text to generate
         :return: generated text
         """
-        return "".join([np.random.choice(list(self.data_set),
-                                         p=[self.get_probability(x) for x in self.data_set]) for _ in range(length)])
+        return "".join([random.choices(list(self.data_set),
+                                       weights=[self.get_probability(x) for x in self.data_set],
+                                       k=1)[0]
+                        for _ in range(length)])
 
     def markov_model(self, level: int = 1, length: int = 100, start_sub: str = "") -> str:
         """
@@ -132,8 +134,9 @@ class Generator:
         """
         result = start_sub
         while len(result) < length:
-            result += np.random.choice(list(self.data_set), replace=True,
-                                       p=self.get_probability_pairs(result[-level:]))
+            result += random.choices(list(self.data_set),
+                                     weights=self.get_probability_pairs(result[-level:]),
+                                     k=1)[0]
         return result
 
     def get_substrings_len(self, start_sub) -> int:
@@ -162,11 +165,11 @@ class Generator:
             result[char] = self.data.count(char)
         return result
 
-    def get_probability_pairs(self, start_subs) -> np.array:
+    def get_probability_pairs(self, start_subs) -> list:
         """
         Get probability of occurrence of this substring with any character of available.
         :param start_subs:
-        :return: numpy array of
+        :return: list
         """
         result = []
         subs_len = self.get_substrings_len(start_subs)
@@ -175,9 +178,9 @@ class Generator:
                 result.append(self.sample.count(start_subs + char)/subs_len)
         else:
             result = [self.get_probability(x) for x in self.data_set]
-        result = np.array(result)
-        result /= result.sum()
-        return result
+        res_sum = sum(result)
+        finish = [x/res_sum for x in result]
+        return finish
 
 
 # functions

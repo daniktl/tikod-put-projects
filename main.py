@@ -29,7 +29,7 @@ def get_average_word_length(text):
 
 def zad1():
     generated_length = 200
-    sample_delta = 15000
+    sample_delta = 30000
     for filename in ["norm_wiki_sample.txt", "norm_hamlet.txt", "norm_romeo.txt"]:
         print(f"[*] Generate for {filename}")
         with open(f"data/{filename}", "r") as file:
