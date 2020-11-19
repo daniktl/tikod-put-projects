@@ -1,4 +1,6 @@
-# TIKoD
+[![Build Status](https://travis-ci.com/daniktl/tikod-put-projects.svg?branch=main)](https://travis-ci.com/daniktl/tikod-put-projects)
+
+# TIMKoD
 
 Small library to read files from the absolute/relative path and convert them to the n-d arrays.
 You could also draw them as plots using `histfile.make_hist()` function.
