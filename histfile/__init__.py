@@ -111,7 +111,7 @@ def weighted_choice(seq: tuple):
             break
     else:
         """If no item found - probably all probabilities are 0 - choose the random item"""
-        chosen_item = seq[random.randint(0, len(seq))][0]
+        chosen_item = seq[random.randint(0, len(seq)-1)][0]
     return chosen_item
 
 
@@ -142,6 +142,7 @@ class Generator:
         if self.mode == "words":
             self.tokenized = self.get_tokenized()
             self.tokens = set(self.tokenized)
+            self.tokens.remove("")
             self.words_count = len(self.tokenized)
             self.generate_hashtable(description=True)
         else:
@@ -271,17 +272,19 @@ class Generator:
         count = self.sample.count(substring)
         return count / len(self.sample)
 
-    def get_frequency(self):
+    def get_frequency(self, show=False):
         result = {}
         if self.mode == "char":
             for char in self.tokens:
                 result[char] = self.data.count(char)
         elif self.mode == "words":
             result = dict(self.hashtable)
-            result = dict(sorted(result.items(), key=lambda x: x[1], reverse=True)[:40])
-            pyplot.xticks(rotation=70)
-        pyplot.bar(list(result.keys()), list(result.values()))
-        pyplot.show()
+        if show:
+            if self.mode == "words":
+                result = dict(sorted(result.items(), key=lambda x: x[1], reverse=True)[:40])
+                pyplot.xticks(rotation=70)
+            pyplot.bar(list(result.keys()), list(result.values()))
+            pyplot.show()
         return result
 
     def get_probability_pairs(self, start_subs: list) -> list:
