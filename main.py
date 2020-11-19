@@ -1,4 +1,4 @@
-import histfile
+import histfile, os
 
 
 def examples():
@@ -28,13 +28,14 @@ def get_average_word_length(text):
 
 
 def zad1():
-    generated_length = 200
+    generated_length = 300
     sample_delta = 30000
     for filename in ["norm_wiki_sample.txt", "norm_hamlet.txt", "norm_romeo.txt"]:
         print(f"[*] Generate for {filename}")
         with open(f"data/{filename}", "r") as file:
             data = file.read()
         generator = histfile.Generator(data, sample_delta=sample_delta)
+        print(generator.frequencies)
         print("\t[+] null approximation")
         res = generator.null_approximation()
         print("\t" + res)
@@ -54,5 +55,18 @@ def zad1():
             print(f"\t average word length: {get_average_word_length(res)}".upper())
 
 
+def zad2():
+    generated_length = 200
+    for filename in ["norm_wiki_sample.txt"]:
+        print(f"[*] Generate for {filename}")
+        generator = histfile.Generator(path=os.path.join("data", filename), mode="words", use_sample=False)
+        res = generator.basic_approximation(length=generated_length)
+        print(res)
+        res = generator.markov_model(length=generated_length, level=2)
+        print(res)
+        res = generator.markov_model(length=generated_length, level=4, start_sub="probability")
+        print(res)
+
+
 if __name__ == '__main__':
-    zad1()
+    zad2()
