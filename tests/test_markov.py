@@ -1,5 +1,4 @@
 from histfile import Generator
-import os
 import pytest
 
 
@@ -15,17 +14,22 @@ class TestChar:
     def test_generator_char_basic_approximation(self, generator_char):
         assert len(generator_char.basic_approximation(length=100)) == 100
 
+    @pytest.mark.parametrize("level", [1, 2, 5, 10])
+    def test_generator_char_markov(self, generator_char: Generator, level):
+        assert len(generator_char.markov_model(level=level, length=100)) == 100
+
 
 @pytest.mark.usefixtures("generator_char")
 class TestWord:
 
-    def test_generator_char_tokens(self, generator_words):
+    def test_generator_word_tokens(self, generator_words):
         assert len(generator_words.frequencies) == len(generator_words.tokens)
 
-    def test_generator_char_basic_approximation(self, generator_words):
+    def test_generator_word_basic_approximation(self, generator_words):
         length = len(generator_words.basic_approximation(length=100))
         assert 100 <= length <= length + len(sorted(generator_words.tokens, key=lambda x: len(x))[0])
 
-    def test_generator_char_markov_1(self, generator_words):
-        length = len(generator_words.markov_model(level=1, length=100))
+    @pytest.mark.parametrize("level", [1, 2, 5])
+    def test_generator_word_markov(self, generator_words, level):
+        length = len(generator_words.markov_model(level=level, length=100))
         assert 100 <= length <= length + len(sorted(generator_words.tokens, key=lambda x: len(x))[0])

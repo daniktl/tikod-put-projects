@@ -248,11 +248,11 @@ class Generator:
             result = list(start_sub)
             while len(result) < length:
                 result.append(random.choices(tuple(self.tokens),
-                                             weights=self.get_probability_pairs(result[-level:]),
+                                             weights=self.get_probability_pairs("".join(result[-level:])),
                                              k=1)[0])
         return separator.join(result)
 
-    def get_substrings_len(self, start_sub) -> int:
+    def get_substrings_len(self, start_sub: str) -> int:
         """
         Count len of all substrings, starting with provided substring
         :param start_sub:
@@ -287,7 +287,7 @@ class Generator:
             pyplot.show()
         return result
 
-    def get_probability_pairs(self, start_subs: list) -> list:
+    def get_probability_pairs(self, start_subs: str) -> list:
         """
         Get probability of occurrence of this substring with any character of available.
         :param start_subs:
