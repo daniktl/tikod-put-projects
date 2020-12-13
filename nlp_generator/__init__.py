@@ -88,7 +88,7 @@ class Generator:
                     continue
                 self.hashtable[item] += 1
         total = sum(self.hashtable.values(), 0.0)
-        self.hashtable = {k: v / total for k, v in self.hashtable.items()}
+        self.hashtable = defaultdict(float, {k: v / total for k, v in self.hashtable.items()})
         if description:
             print(f"\t[v]Generated hashtable: level {level},"
                   f" length {len(self.hashtable)} in {time.time() - start_time} s")
@@ -96,13 +96,12 @@ class Generator:
     def get_entropy(self) -> float:
         result = 0
         """get_frequency() -> {"a":0.6, "b":0.1, ....} or {"we": }"""
-        try:
-            char, prob = None, None
-            for char, prob in self.get_frequency().items():
-                result += prob * math.log2(prob)
-        except Exception as exp:
-            print(exp, prob, char)
-            return 0
+
+        char, prob = None, None
+        for char, prob in self.get_frequency().items():
+            if prob <= 0:
+                continue
+            result += prob * math.log2(prob)
         return -result
 
     def get_hashtable_top(self, n: int = 5):
@@ -204,7 +203,7 @@ class Generator:
         if self.mode == "char":
             for char in self.tokens:
                 result[char] = self.sample.count(char) / len(self.sample)
-            result = {k: v for k, v in result.items() if v > 0}
+            # result = {k: v for k, v in result.items() if v > 0}
         elif self.mode == "words":
             result = dict(self.hashtable)
         if show:
