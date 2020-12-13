@@ -1,4 +1,4 @@
-from histfile import Generator
+from nlp_generator import Generator
 import pytest
 
 

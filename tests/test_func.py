@@ -1,4 +1,4 @@
-from histfile import *
+from nlp_generator import *
 
 
 def test_weighted_choice():
