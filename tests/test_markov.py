@@ -5,9 +5,6 @@ import pytest
 @pytest.mark.usefixtures("generator_char")
 class TestChar:
 
-    def test_generator_char_tokens(self, generator_char):
-        assert len(generator_char.frequencies) == len(generator_char.tokens)
-
     def test_generator_char_null_approximation(self, generator_char):
         assert len(generator_char.null_approximation(length=100)) == 100
 
@@ -23,7 +20,8 @@ class TestChar:
 class TestWord:
 
     def test_generator_word_tokens(self, generator_words):
-        assert len(generator_words.frequencies) == len(generator_words.tokens)
+        generator_words.basic_approximation()
+        assert len(generator_words.hashtable) == len(generator_words.tokens)
 
     def test_generator_word_basic_approximation(self, generator_words):
         length = len(generator_words.basic_approximation(length=100))
