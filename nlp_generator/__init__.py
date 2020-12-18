@@ -64,7 +64,6 @@ class Generator:
         self.size: int = len(data)
         self.tokenized: list = []
         self.tokens: list = []
-        self.words_count: int = 0
         self.mode: str = mode
 
         self.hashtable: dict = {}
@@ -72,9 +71,6 @@ class Generator:
             self.separator = " "
             self.tokenized = self.data.split(" ")
             self.tokens = list(set(self.tokenized))
-            if "" in self.tokens:
-                self.tokens.remove("")
-            self.words_count = len(self.tokenized)
         else:
             self.separator = ""
             self.tokenized = list(self.data)
@@ -169,13 +165,12 @@ class Generator:
         self.hashtable = {}
         hashtable = defaultdict(lambda: 0)
         secondary_hashtable = defaultdict(lambda: 0)
-        for idx in range(len(self.tokenized)-level + 1):
+        for idx in range(len(self.tokenized) - level + 1):
             # get probabilities for the current chain level and level higher
             # for idx_tmp in range(level-2, level):
             #     hashtable[tuple(self.tokenized[idx:idx+idx_tmp+1])] += 1
             hashtable[tuple(self.tokenized[idx:idx + level])] += 1
             secondary_hashtable[tuple(self.tokenized[idx:idx + level - 1])] += 1
-
         sum_values = sum(hashtable.values())
         hashtable = {k: v/sum_values for k, v in hashtable.items()}
         sum_values_secondary = sum(secondary_hashtable.values())
