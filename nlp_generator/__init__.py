@@ -1,11 +1,7 @@
 from matplotlib import pyplot
-from string import ascii_lowercase, digits
 import random
 from collections import defaultdict
-import time
 import math
-
-files_ls = []
 
 
 def weighted_choice(seq: tuple):
@@ -31,6 +27,30 @@ def weighted_choice(seq: tuple):
         """If no item found - probably all probabilities are 0 - choose the random item"""
         chosen_item = seq[random.randint(0, len(seq)-1)][0]
     return chosen_item
+
+
+# class Chain:
+#     def __init__(self, name: str, parent = None):
+#         self.parent: Chain = parent
+#         self.name = name
+#         self._value = 0
+#         self.children = []
+#
+#     @property
+#     def value(self):
+#         return self._value
+#
+#     def add_child(self, name):
+#         for child in self.children:
+#             if child.name == name:
+#                 break
+#         else:
+#             self.children.append()
+#         self.child.append(node)
+#         self.recalculate()
+#
+#     def recalculate(self):
+#         self._value += 1
 
 
 class Generator:
@@ -78,7 +98,6 @@ class Generator:
 
     def get_entropy(self, level=0) -> float:
         """
-        Get entropy of data
         :param level: conditional level (0 - basic entropy)
         :return: entropy of the text
         """
@@ -154,23 +173,35 @@ class Generator:
             result.append(tmp)
         return self.separator.join(result)
 
-    def show_top_hashtable(self, n=40):
+    def show_top_hashtable(self, n=40) -> None:
+        """
+        Show the bar plot of the most frequent items in the chain
+        :param n: number of items to show on the plot (up to 100)
+        :return:
+        """
+        if n > 50:
+            raise AttributeError("Provide number of items to show up to 50 to have readable plot")
         hashtable_top = self.get_hashtable_top(n)
         pyplot.xticks(rotation=75)
         pyplot.bar(list(hashtable_top.keys()), list(hashtable_top.values()))
         pyplot.show()
 
-    # 2.0
-    def get_transition_probabilities(self, level=1):
+    def get_transition_probabilities(self, level=1) -> tuple:
+        """
+        Generate transition probabilities with provided level
+        :param level: level of dependence
+        :return: (main hashtable, secondary hashtable with lower level dependence for calculations)
+        """
         self.hashtable = {}
         hashtable = defaultdict(lambda: 0)
         secondary_hashtable = defaultdict(lambda: 0)
         for idx in range(len(self.tokenized) - level + 1):
             # get probabilities for the current chain level and level higher
-            # for idx_tmp in range(level-2, level):
-            #     hashtable[tuple(self.tokenized[idx:idx+idx_tmp+1])] += 1
+            for idx_tmp in range(level):
+                hashtable[tuple(self.tokenized[idx:idx+idx_tmp+1])] += 1
             hashtable[tuple(self.tokenized[idx:idx + level])] += 1
             secondary_hashtable[tuple(self.tokenized[idx:idx + level - 1])] += 1
+
         sum_values = sum(hashtable.values())
         hashtable = {k: v/sum_values for k, v in hashtable.items()}
         sum_values_secondary = sum(secondary_hashtable.values())
@@ -178,3 +209,66 @@ class Generator:
 
         self.hashtable = hashtable
         return hashtable, secondary_hashtable
+
+    # 3.0
+    def get_transition_chain(self, level: int = 1) -> None:
+        self.hashtable = {}
+        hashtable = {"value": 1, "next": {}}
+
+        def add_child(dic: dict, cur_chain: list):
+
+            if len(cur_chain) == 1:
+                if cur_chain[0] in dic:
+                    dic[cur_chain[0]]["value"] += 1
+                else:
+                    dic[cur_chain[0]] = {"value": 1, "next": {}}
+                return dic
+            else:
+                dic[cur_chain[0]]["next"] = add_child(dic[cur_chain[0]]["next"], cur_chain=cur_chain[1:])
+                return dic
+
+        for token_id, token in enumerate(self.tokenized):
+            for idx in range(level):
+                hashtable["next"] = add_child(hashtable["next"], self.tokenized[token_id: token_id + idx + 1])
+
+        # breakpoint()
+        self.hashtable = hashtable
+
+    def get_most_relevant(self, chain: list) -> str:
+        prev_dict = {}
+        cur_dict = self.hashtable
+        item = None
+        for item in chain:
+            if cur_dict["next"].get(item, None):
+                prev_dict = cur_dict
+                cur_dict = cur_dict["next"][item]
+            else:
+                break
+                
+        def get_probabilities(dict_values: list) -> list:
+            occurrences = list(dict_values)
+            sum_occurrences = sum(occurrences)
+            if sum_occurrences == 0:
+                return occurrences
+            return [x / sum_occurrences for x in occurrences]
+
+        if prev_dict and item is not None:
+            try:
+                prev_idx = list(prev_dict["next"].keys()).index(item)
+                # breakpoint()
+            except Exception as exp:
+                print(exp)
+                breakpoint()
+            prev_probability = get_probabilities([x.get("value", 0) for x in (prev_dict["next"].values())])[prev_idx]
+        else:
+            prev_probability = 1
+        # breakpoint()
+        probabilities = [prev_probability / x for x in get_probabilities([x.get("value", 0) for x in (cur_dict["next"].values())])]
+        return weighted_choice(tuple(zip(cur_dict["next"].keys(), probabilities)))
+
+    def custom_markov(self, level):
+        self.get_transition_chain(level)
+        result = []
+        while len(result) < 300:
+            result.append(self.get_most_relevant(result[-level:]))
+        print("".join(result))
