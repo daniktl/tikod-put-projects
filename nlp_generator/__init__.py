@@ -29,30 +29,6 @@ def weighted_choice(seq: tuple):
     return chosen_item
 
 
-# class Chain:
-#     def __init__(self, name: str, parent = None):
-#         self.parent: Chain = parent
-#         self.name = name
-#         self._value = 0
-#         self.children = []
-#
-#     @property
-#     def value(self):
-#         return self._value
-#
-#     def add_child(self, name):
-#         for child in self.children:
-#             if child.name == name:
-#                 break
-#         else:
-#             self.children.append()
-#         self.child.append(node)
-#         self.recalculate()
-#
-#     def recalculate(self):
-#         self._value += 1
-
-
 class Generator:
 
     def __init__(self, data: str = None,
@@ -164,12 +140,14 @@ class Generator:
             result = list(start_sub)
         while len(self.separator.join(result)) < length:
             weights = [
-                hashtable.get(tuple(result[-level:] + [x]), 0) /
-                secondary_hashtable.get(tuple(result[-level + 1:] + [x]), 0) if
-                secondary_hashtable.get(tuple(result[-level + 1:] + [x]), 0) > 0 else 0.0
+                hashtable.get(tuple(result[-level:] + [x]), 0.0) /
+                secondary_hashtable.get(tuple(result[-level:]), 0.0) if
+                secondary_hashtable.get(tuple(result[-level:]), 0.0) > 0 else 0.0
                 for x in self.tokens
             ]
+
             tmp = weighted_choice(tuple(zip(self.tokens, weights)))
+
             result.append(tmp)
         return self.separator.join(result)
 
@@ -197,8 +175,8 @@ class Generator:
         secondary_hashtable = defaultdict(lambda: 0)
         for idx in range(len(self.tokenized) - level + 1):
             # get probabilities for the current chain level and level higher
-            for idx_tmp in range(level):
-                hashtable[tuple(self.tokenized[idx:idx+idx_tmp+1])] += 1
+            # for idx_tmp in range(level):
+            #     hashtable[tuple(self.tokenized[idx:idx+idx_tmp+1])] += 1
             hashtable[tuple(self.tokenized[idx:idx + level])] += 1
             secondary_hashtable[tuple(self.tokenized[idx:idx + level - 1])] += 1
 
@@ -209,66 +187,3 @@ class Generator:
 
         self.hashtable = hashtable
         return hashtable, secondary_hashtable
-
-    # 3.0
-    def get_transition_chain(self, level: int = 1) -> None:
-        self.hashtable = {}
-        hashtable = {"value": 1, "next": {}}
-
-        def add_child(dic: dict, cur_chain: list):
-
-            if len(cur_chain) == 1:
-                if cur_chain[0] in dic:
-                    dic[cur_chain[0]]["value"] += 1
-                else:
-                    dic[cur_chain[0]] = {"value": 1, "next": {}}
-                return dic
-            else:
-                dic[cur_chain[0]]["next"] = add_child(dic[cur_chain[0]]["next"], cur_chain=cur_chain[1:])
-                return dic
-
-        for token_id, token in enumerate(self.tokenized):
-            for idx in range(level):
-                hashtable["next"] = add_child(hashtable["next"], self.tokenized[token_id: token_id + idx + 1])
-
-        # breakpoint()
-        self.hashtable = hashtable
-
-    def get_most_relevant(self, chain: list) -> str:
-        prev_dict = {}
-        cur_dict = self.hashtable
-        item = None
-        for item in chain:
-            if cur_dict["next"].get(item, None):
-                prev_dict = cur_dict
-                cur_dict = cur_dict["next"][item]
-            else:
-                break
-                
-        def get_probabilities(dict_values: list) -> list:
-            occurrences = list(dict_values)
-            sum_occurrences = sum(occurrences)
-            if sum_occurrences == 0:
-                return occurrences
-            return [x / sum_occurrences for x in occurrences]
-
-        if prev_dict and item is not None:
-            try:
-                prev_idx = list(prev_dict["next"].keys()).index(item)
-                # breakpoint()
-            except Exception as exp:
-                print(exp)
-                breakpoint()
-            prev_probability = get_probabilities([x.get("value", 0) for x in (prev_dict["next"].values())])[prev_idx]
-        else:
-            prev_probability = 1
-        # breakpoint()
-        probabilities = [prev_probability / x for x in get_probabilities([x.get("value", 0) for x in (cur_dict["next"].values())])]
-        return weighted_choice(tuple(zip(cur_dict["next"].keys(), probabilities)))
-
-    def custom_markov(self, level):
-        self.get_transition_chain(level)
-        result = []
-        while len(result) < 300:
-            result.append(self.get_most_relevant(result[-level:]))
-        print("".join(result))

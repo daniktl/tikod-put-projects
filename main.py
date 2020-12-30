@@ -154,18 +154,18 @@ def zad3b():
 
 def test():
     generated_length = 300
-    for filename in ["norm_hamlet.txt"]:
+    for filename in ["norm_wiki_sample.txt"]:
         custom_print(f"[*] Generate for {filename}", style="h")
         with open(f"data/{filename}", "r") as file:
             data = file.read()
-        generator = nlp_generator.Generator(data, mode="char", use_sample=True)
-        generator.custom_markov(level=3)
-        # for level in [5]:
-        #     custom_print(f"\t[+] markov chain level {level}", style="c")
-        #     start_sub = "ability"
-        #     res = generator.markov_model(level=5, length=generated_length, start_sub=start_sub)
-        #     print("\t" + res)
-        #     get_average_word_length(res)
+        for mode in ["char"]:
+            generator = nlp_generator.Generator(data, mode=mode, use_sample=True)
+            for level in [1, 2, 5, 10]:
+                custom_print(f"\t[+] markov chain level {level}", style="c")
+                start_sub = ""
+                res = generator.markov_model(level=5, length=generated_length, start_sub=start_sub)
+                print("\t" + res)
+                get_average_word_length(res)
 
 
 if __name__ == '__main__':
